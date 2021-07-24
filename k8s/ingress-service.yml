@@ -1,0 +1,30 @@
+apiVersion: networking.k8s.io/v1beta1
+# Instead of extensions/v1beta1 ??
+# UPDATED THE API above
+
+kind: Ingress
+metadata:
+    name: ingress-service
+    annotations:
+        kubernetes.io/ingress.class: nginx
+        nginx.ingress.kubernetes.io/use-regex: 'true'
+        # UPDATED ABOVE LINE
+        nginx.ingress.kubernetes.io/rewrite-target: /$1
+    # Adding a custom setting to remove /api from traffic URL before passing on to Pod having nodejs
+    # UPDATED ABOVE LINE
+spec:
+    rules:
+        - http:
+            paths:
+                - path: /?(.*)
+          # If we only write path: / above, we will get Ingress Update "this.state.seenIndexes.map is not a function" / 404 errors, for apiVersion: networking.k8s.io/v1beta1
+          # UPDATED ABOVE LINE
+                  backend:
+                    serviceName: client-cluster-ip-service
+                    servicePort: 3000
+                - path: /api/?(.*)
+          # If we only write path: /api above, we will get Ingress Update "this.state.seenIndexes.map is not a function" / 404 errors, for apiVersion: networking.k8s.io/v1beta1
+          # UPDATED ABOVE LINE
+                  backend:
+                    serviceName: server-cluster-ip-service
+                    servicePort: 5000
