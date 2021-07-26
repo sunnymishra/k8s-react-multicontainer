@@ -1,3 +1,29 @@
+Use below commands in Google cloud console shell to install the Cert Manager using Helm for Https Certificates in our K8s cluster:
+
+- Create the namespace for cert-manager:
+$ kubectl create namespace cert-manager
+
+- Add the Jetstack Helm repository
+$ helm repo add jetstack https://charts.jetstack.io
+
+- Update your local Helm chart repository cache:
+$ helm repo update
+
+- Install the cert-manager Helm chart:
+$ helm install \
+	  cert-manager jetstack/cert-manager \
+	  --namespace cert-manager \
+	  --version v1.2.0 \
+	  --create-namespace
+
+- Install the CRDs:
+$ kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.2.0/cert-manager.crds.yaml
+
+Official docs for reference:
+
+https://cert-manager.io/docs/installation/kubernetes/#installing-with-helm
+
+------------------------
 Execute following command in our Google cloud console Shell, to install Helm v2 Instead of using older Helm as used in Udemy course:
 
 curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
