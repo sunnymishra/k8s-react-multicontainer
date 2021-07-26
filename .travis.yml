@@ -1,36 +1,29 @@
 sudo: required
-language: generic
-
 services:
-  - docker
-
+    - docker
+env:
+    global:
+        - GIT_SHA=$(git rev-parse HEAD)
+        - CLOUDSDK_CORE_DISABLE_PROMPTS=1
+        # Above removes the user prompt "Are you sure?" from the Google gcloud CLI
 before_install:
-  - docker build -t cygnetops/react-test -f ./client/Dockerfile.dev ./client
-
+    - openssl aes-256-cbc -K $encrypted_ef59ff332771_key -iv $encrypted_ef59ff332771_iv -in google_iam_service_account_creds.json.enc -out google_iam_service_account_creds.json -d
+    - curl https://sdk.cloud.google.com | bash > /dev/null;
+    - source $HOME/google-cloud-sdk/path.bash.inc
+    - gcloud components update kubectl
+    - gcloud auth activate-service-account --key-file google_iam_service_account_creds.json
+    - gcloud config set project k8s-react-multicontainer
+    - gcloud config set compute/zone asia-south1-a
+    - gcloud container clusters get-credentials multi-cluster
+    - echo "$DOCKER_PWD" | docker login -u "$DOCKER_ID" --password-stdin
+    - docker build -t sunnymishra0389/react-test -f ./client/Dockerfile.dev ./client
+    
 script:
-  - docker run -e CI=true cygnetops/react-test npm test
-
-after_success:
-  - docker build -t cygnetops/multi-client-10-14 ./client
-  - docker build -t cygnetops/multi-nginx-10-14 ./nginx
-  - docker build -t cygnetops/multi-server-10-14 ./server
-  - docker build -t cygnetops/multi-worker-10-14 ./worker
-  # Log in to the docker CLI
-  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
-  # Take those images and push them to docker hub
-  - docker push cygnetops/multi-client-10-14
-  - docker push cygnetops/multi-nginx-10-14
-  - docker push cygnetops/multi-server-10-14
-  - docker push cygnetops/multi-worker-10-14
-
+    - docker run -e CI=true sunnymishra0389/react-test npm test
+    
+# Unlike previous Project where Travis file itself contained the script to Build+Deploy Image in provider:elasticbeanstalk, the Travis doesn't support Kubernetes deployment out of the box, so we have to write all that out manually in our own customer deploy.sh file below
 deploy:
-  provider: elasticbeanstalk
-  region: 'ap-south-1'
-  app: 'multi-container-react-app'
-  env: 'Multicontainerreactapp-env'
-  bucket_name: 'elasticbeanstalk-ap-south-1-230907580299'
-  bucket_path: 'multi-docker-react'
-  on:
-    branch: master
-  access_key_id: $AWS_ACCESS_KEY
-  secret_access_key: $AWS_SECRET_KEY
+    provider: script
+    script: bash ./deploy.sh
+    on:
+        branch: master

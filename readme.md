@@ -1,3 +1,82 @@
+Execute following command in our Google cloud console Shell, to install Helm v2 Instead of using older Helm as used in Udemy course:
+
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
+chmod 700 get_helm.sh
+./get_helm.sh
+
+Link to more readup material:
+
+https://helm.sh/docs/intro/install/#from-script
+
+2. Skip the commands run in the following lectures:
+
+- Helm Setup, 
+- Kubernetes Security with RBAC, 
+- Assigning Tiller a Service Account, and 
+- Ingress-Nginx with Helm. 
+You should still watch these lectures and they contain otherwise useful info. 
+
+3. Install Ingress-Nginx:
+
+In your Google Cloud Console run the following:
+
+$ helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+$ helm install my-release ingress-nginx/ingress-nginx
+
+
+IMPORTANT: If you get an error such as chart requires kubeVersion: >=1.16.0-0.....
+
+You may need to manually upgrade your cluster to at least the version specified:
+
+$ gcloud container clusters upgrade  YOUR_CLUSTER_NAME --master --cluster-version 1.16
+
+This should not be a long term issue since Google Cloud should handle this automatically:
+
+https://cloud.google.com/kubernetes-engine/docs/how-to/upgrading-a-cluster
+
+Link to the docs:
+
+https://kubernetes.github.io/ingress-nginx/deploy/#using-helm
+
+----------------------
+In .travis.yml make sure to change this script so that Testcase exits after success and don't cause our builds to fail.:
+
+    script:
+      - docker run USERNAME/react-test npm test -- --coverage
+
+To use the CI flag and remove coverage:
+
+    script:
+      - docker run -e CI=true USERNAME/react-test npm test
+------------------------
+Travis cli login inside ruby:2.4 container in local laptop to encrypt Google IAM user's credentials JSON file will fail with "iv undefined" errors. To avoid it do following:
+
+Create a Personal Github Token for Travis:
+
+https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token
+
+Setup the scope with Travis permissions:
+
+https://docs.travis-ci.com/user/github-oauth-scopes/#repositories-on-httpstravis-cicom-private-and-public
+
+The login command will now look like this:
+
+travis login --github-token YOUR_GITHUB_SECRET_TOKEN --com
+
+When you encrypt the Google IAM user's credentials JSON file, you must pass the same --com flag you used to log in:
+
+travis encrypt-file google_iam_service_account_creds.json -r sunnymishra/k8s-react-multicontainer --com
+ 
+
+-------------------------
+Installing Travis inside a Docker container requires Ruby v2.4. Command:
+
+docker run -it -v $(pwd):/app ruby:2.4 sh
+
+With this version, we will no longer be passing the --no-rdoc or --no-ri flags when installing Travis. The command will simply be:
+
+gem install travis 
+-------------------------
 When adding the name variable to the postgres-deployment.yaml file, instead of using the following:
 
     env:
