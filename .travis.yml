@@ -14,7 +14,7 @@ before_install:
     - gcloud auth activate-service-account --key-file google_iam_service_account_creds.json
     - gcloud config set project k8s-react-multicontainer
     - gcloud config set compute/zone asia-south1-a
-    - gcloud container clusters get-credentials multi-cluster
+    - gcloud container clusters get-credentials k8s--react-multicontainer-cluster
     - echo "$DOCKER_PWD" | docker login -u "$DOCKER_ID" --password-stdin
     - docker build -t sunnymishra0389/react-test -f ./client/Dockerfile.dev ./client
     
